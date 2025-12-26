@@ -20,5 +20,9 @@ export const styles = StyleSheet.create({
     fontSize: 32,
     color: colors.white,
     fontFamily: fontFamily.medium
+  },
+  summary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   }
 });
