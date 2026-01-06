@@ -1,5 +1,5 @@
-import { colors } from '@/src/theme/colors';
-import { fontFamily } from '@/src/theme/fontFamily';
+import { colors } from '@/theme/colors';
+import { fontFamily } from '@/theme/fontFamily';
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({

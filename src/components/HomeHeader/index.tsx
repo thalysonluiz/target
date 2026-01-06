@@ -1,4 +1,4 @@
-import { colors } from '@/src/theme/colors';
+import { colors } from '@/theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 import { Separator } from '../Separator';
