@@ -4,7 +4,7 @@ import { Input } from '@/components/Input'
 import { PageHeader } from '@/components/PageHeader'
 import { useTargetDatabase } from '@/database/useTargetDatabase'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, View } from 'react-native'
 
 export default function Target() {
@@ -26,7 +26,7 @@ export default function Target() {
     setIsProcessing(true)
 
     if (params.id) {
-      // update
+      update()
     } else {
       create()
     }
@@ -47,6 +47,41 @@ export default function Target() {
       setIsProcessing(false)
     }
   }
+
+  async function update() {
+    try {
+      await targetDatabase.update({ id: Number(params.id), name, amount })
+      Alert.alert('Sucesso!', 'Meta atualizada com sucesso!', [
+        {
+          text: 'Ok',
+          onPress: router.back,
+        },
+      ])
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível atualizar a meta.')
+      console.log(error)
+      setIsProcessing(false)
+    }
+  }
+
+  async function fetchDetails(id: number) {
+    try {
+      const response = await targetDatabase.show(id)
+      if (response) {
+        setName(response.name)
+        setAmount(response.amount)
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar os detalhes da meta.')
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    if (params.id) {
+      fetchDetails(Number(params.id))
+    }
+  }, [params.id])
 
   return (
     <View style={{ flex: 1, padding: 24 }}>
