@@ -1,25 +1,24 @@
 import { Button } from '@/components/Button'
-import { HomeHeader } from '@/components/HomeHeader'
+import { HomeHeader, HomeHeaderProps } from '@/components/HomeHeader'
 import { List } from '@/components/List'
 import { Loading } from '@/components/Loading'
 import { Target, TargetProps } from '@/components/Target'
 import { useTargetDatabase } from '@/database/useTargetDatabase'
+import { useTransactionsDatabase } from '@/database/useTransactionDatabase'
 import { numberToCurrency } from '@/utils/numberToCurrency'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { Alert, StatusBar, View } from 'react-native'
 
-const summary = {
-  total: 'R$ 2.680,00',
-  input: { label: 'Entradas', value: 'R$ 6.184,90' },
-  output: { label: 'Saídas', value: '-R$ 883,65' },
-}
 
 export default function Index() {
+  const [summary, setSummary] = useState<HomeHeaderProps>()
   const [isFetching, setIsFetching] = useState(true)
   const [targets, setTargets] = useState<TargetProps[]>([])
 
   const targetDatabase = useTargetDatabase()
+  const transactionsDatabase = useTransactionsDatabase()
+
 
   async function fetchTargets(): Promise<TargetProps[]> {
     try {
@@ -41,10 +40,43 @@ export default function Index() {
   async function fetchData() {
     const targetDataPromise = fetchTargets()
 
-    const [targetData] = await Promise.all([targetDataPromise])
+    const dataSummaryPromise = fetchSummary()
+
+    const [targetData, dataSummary] = await Promise.all([
+      targetDataPromise,
+      dataSummaryPromise,
+    ])
 
     setTargets(targetData)
+    setSummary(dataSummary)
+
     setIsFetching(false)
+  }
+
+  async function fetchSummary() {
+    try {
+      const response = await transactionsDatabase.summary()
+
+      if (!response) {
+        throw new Error('Failed to fetch summary')
+      }
+
+      return {
+        total: numberToCurrency(response.input + response.output),
+        input: {
+          label: 'Entradas',
+          value: numberToCurrency(response.input),
+        },
+        output: {
+          label: 'Saídas',
+          value: numberToCurrency(response.output),
+        },
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar o resumo.')
+      console.log(error)
+
+    }
   }
 
   useFocusEffect(
@@ -60,7 +92,7 @@ export default function Index() {
   return (
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" />
-      <HomeHeader data={summary} />
+      <HomeHeader data={summary!} />
 
       <List
         title="Metas"
